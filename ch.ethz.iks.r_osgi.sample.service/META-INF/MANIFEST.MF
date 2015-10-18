@@ -15,4 +15,5 @@ Bundle-ActivationPolicy: lazy
 Bundle-Activator: ch.ethz.iks.r_osgi.sample.service.Activator
 Bundle-RequiredExecutionEnvironment: CDC-1.0/Foundation-1.0,
  OSGi/Minimum-1.0
-
+Bundle-ClassPath: libs/opencv-2412.jar,.
+Bundle-NativeCode: libs/libopencv_java2412.dylib
