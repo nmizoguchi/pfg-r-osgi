@@ -32,11 +32,13 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Hashtable;
 
+import org.opencv.core.Core;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceReference;
-import org.osgi.framework.Filter;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventConstants;
 import org.osgi.service.event.EventHandler;
@@ -77,6 +79,13 @@ public class Activator implements BundleActivator, EventHandler {
 	
 	public void start(final BundleContext context) {
 		try {
+					System.out.println( Core.NATIVE_LIBRARY_NAME );
+					System.loadLibrary( Core.NATIVE_LIBRARY_NAME );
+				      Mat mat = Mat.eye( 3, 3, CvType.CV_8UC1 );
+				      System.out.println( "mat = " + mat.dump() );
+		
+		
+		      
 			System.out.println("starting sample client");
 
 			sref = context.getServiceReference(RemoteOSGiService.class

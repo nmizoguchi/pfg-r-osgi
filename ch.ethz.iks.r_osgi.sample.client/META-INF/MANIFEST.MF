@@ -15,4 +15,6 @@ Export-Package: ch.ethz.iks.r_osgi.sample.api;version="1.0.0.RC4"
 Bundle-Activator: ch.ethz.iks.r_osgi.sample.client.Activator
 Bundle-RequiredExecutionEnvironment: CDC-1.1/Foundation-1.1,
  OSGi/Minimum-1.1
+Bundle-ClassPath: libs/opencv-2412.jar,.
+Bundle-NativeCode: libs/libopencv_java2412.dylib
 
