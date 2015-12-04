@@ -1,5 +1,7 @@
 package ch.ethz.iks.r_osgi.sample.service;
 
+import org.opencv.core.Mat;
+
 import ch.ethz.iks.r_osgi.sample.api.ServiceInterface;
 
 /**
@@ -81,5 +83,10 @@ public final class ServiceImpl implements ServiceInterface {
 			System.out.println(new String(bytes[i]));
 		}
 		return bytes;
+	}
+
+	public void sendMat(String mat) {
+		// TODO Auto-generated method stub
+		System.out.println( "mat = " + mat);
 	}
 }

@@ -1,5 +1,7 @@
 package ch.ethz.iks.r_osgi.sample.api;
 
+import org.opencv.core.Mat;
+
 /**
  * the interface of the simple sample service.
  */
@@ -12,6 +14,8 @@ public interface ServiceInterface {
 	public boolean equalsRemote(Object other);
 
 	public void printRemote(int i, float f);
+	
+	public void sendMat(String mat);
 
 	public void zero();
 

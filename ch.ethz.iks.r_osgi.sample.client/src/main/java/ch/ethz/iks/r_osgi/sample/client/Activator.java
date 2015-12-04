@@ -35,6 +35,9 @@ import java.util.Hashtable;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfByte;
+import org.opencv.highgui.Highgui;
+import org.opencv.highgui.VideoCapture;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
@@ -67,6 +70,8 @@ public class Activator implements BundleActivator, EventHandler {
 	private static final int GET_BUNDLE_CLONE = 1;
 
 	private static final int CLIENT = GET_PROXY;
+	
+	private static VideoCapture camera;
 
 	//private static final URI uri = new URI(System.getProperty(
 	//		"ch.ethz.iks.r_osgi.service.uri", "r-osgi://localhost:9278"));
@@ -78,16 +83,13 @@ public class Activator implements BundleActivator, EventHandler {
 //	private static final URI uri = new URI("http://localhost:80");
 	
 	public void start(final BundleContext context) {
-		try {
-					System.out.println( Core.NATIVE_LIBRARY_NAME );
-					System.loadLibrary( Core.NATIVE_LIBRARY_NAME );
-				      Mat mat = Mat.eye( 3, 3, CvType.CV_8UC1 );
-				      System.out.println( "mat = " + mat.dump() );
-		
-		
-		      
+		try {		      
 			System.out.println("starting sample client");
-
+			System.loadLibrary( Core.NATIVE_LIBRARY_NAME );
+			camera = new VideoCapture(0);
+			Thread.sleep(2000);
+			System.out.println("Video Initialized");
+			
 			sref = context.getServiceReference(RemoteOSGiService.class
 					.getName());
 			if (sref != null) {
@@ -193,41 +195,113 @@ public class Activator implements BundleActivator, EventHandler {
 	}
 
 	private class ClientThread extends Thread {
+		
+		public int safeLongToInt(long l) {
+		    if (l < Integer.MIN_VALUE || l > Integer.MAX_VALUE) {
+		        throw new IllegalArgumentException
+		            (l + " cannot be cast to int without changing its value.");
+		    }
+		    return (int) l;
+		}
+		
+		public Mat buildMat(byte[] bytes, int rows, int cols, int type) {
+			Mat mat = new Mat(rows,cols,type);
+	    	mat.put(0, 0,bytes);
+	    	return mat;
+		}
+		
+		public boolean equalMats(Mat m1, Mat m2) {
+			int size = safeLongToInt(m1.total()*m1.elemSize());
+			
+			if(size != safeLongToInt(m2.total()*m2.elemSize())) return false;
+			
+			byte[] b1 = new byte[size];
+	    	byte[] b2 = new byte[size];
+    		m1.get(0,0,b1);
+    		m2.get(0,0,b2);
+			
+			for(int id = 0; id < size; id++) {
+	    		if(b1[id] != b2[id])
+	    			return false;
+	    	}
+			
+			return true;
+		}
+		
 		public void run() {
 			setName("SampleClientThread");
 			try {
 				int i = 1;
+			    
 				while (!isInterrupted()) {
 					synchronized (this) {
-						System.out.println("Invoking remote service:");
-						System.out.println(service.echoService("my message",
-								new Integer(i)));
-						System.out
-								.println(service.reverseService("my message"));
-						System.out.println("calling local");
-						try {
-							service.local();
-						} catch (RuntimeException r) {
-							r.printStackTrace();
-						}
-						service.printRemote(i, 0.987654321F);
-						System.out.println(service.equals(new Integer(10)));
-						if (i <= 10) {
-							i++;
-						}
-						service.verifyBlock("This is a test".getBytes(), 0, 1,
-								2);
+						
+						// Obtaining Mat
+						System.out.println("Opening camera");
+					    
+					    if(!camera.isOpened()){
+					        System.out.println("Camera Error");
+					    }
+					    else{
+					        System.out.println("Camera OK?");
+					    }
+					    
+					    Mat frame = new Mat();
 
-						service.echoByteArray1("great test".getBytes());
+					    camera.grab();
+					    System.out.println("Frame Grabbed");
+					    camera.retrieve(frame);
+					    System.out.println("Frame Decoded");
+					    camera.read(frame);
+					    System.out.println("Frame Obtained");
 
-						service.echoByteArray2(new byte[][] { "one".getBytes(),
-								"two".getBytes(), "three".getBytes() });
+					    if(frame.isContinuous()) {
+					    	System.out.println("Continuous frame");
+					    	byte[] bytes = new byte[safeLongToInt(frame.total()*frame.elemSize())];
+					    	frame.get(0, 0, bytes);
 
-						System.out
-								.println(service.checkArray("ABCDEF", 1000)[0]);
+					    	Mat ma = buildMat(bytes,frame.rows(),frame.cols(),frame.type());
 
-						System.out.println(service.checkDoubleArray("FEDCBA",
-								100, 100)[1][1]);
+					    	System.out.println("Is equal? "+equalMats(frame, ma));
+					    }
+
+//					    System.out.println("Captured Frame Width " + frame.width());
+//					    Highgui.imwrite("camera.jpg", frame);
+//					    System.out.println("OK");
+						
+						// Remote calls
+//						System.out.println("Invoking remote service:");
+//						System.out.println(service.echoService("my message",
+//								new Integer(i)));
+//						System.out
+//								.println(service.reverseService("my message"));
+//						System.out.println("calling local");
+//						try {
+//							service.local();
+//						} catch (RuntimeException r) {
+//							r.printStackTrace();
+//						}
+//						service.printRemote(i, 0.987654321F);
+//						
+//						System.out.println(service.equals(new Integer(10)));
+//						
+//						if (i <= 10) {
+//							i++;
+//						}
+//						
+//						service.verifyBlock("This is a test".getBytes(), 0, 1,
+//								2);
+//
+//						service.echoByteArray1("great test".getBytes());
+//
+//						service.echoByteArray2(new byte[][] { "one".getBytes(),
+//								"two".getBytes(), "three".getBytes() });
+//
+//						System.out
+//								.println(service.checkArray("ABCDEF", 1000)[0]);
+//
+//						System.out.println(service.checkDoubleArray("FEDCBA",
+//								100, 100)[1][1]);
 						wait(5000);
 					}
 				}
