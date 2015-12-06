@@ -14,8 +14,6 @@ public interface ServiceInterface {
 	public boolean equalsRemote(Object other);
 
 	public void printRemote(int i, float f);
-
-	public void sendMat(String mat);
 	
 	public void zero();
 
@@ -31,5 +29,7 @@ public interface ServiceInterface {
 	public byte[] echoByteArray1(final byte[] bytes);
 
 	public byte[][] echoByteArray2(final byte[][] bytes);
+	
+	public int getMatInterpretation(final byte[] matData, int rows, int cols, int type);
 
 }

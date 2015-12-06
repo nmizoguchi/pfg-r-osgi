@@ -259,10 +259,11 @@ public class Activator implements BundleActivator, EventHandler {
 					    	System.out.println("Continuous frame");
 					    	byte[] bytes = new byte[safeLongToInt(frame.total()*frame.elemSize())];
 					    	frame.get(0, 0, bytes);
-
-					    	Mat ma = buildMat(bytes,frame.rows(),frame.cols(),frame.type());
-
-					    	System.out.println("Is equal? "+equalMats(frame, ma));
+					    	System.out.println(service.getMatInterpretation(bytes, frame.rows(), frame.cols(), frame.type()));
+					    	
+//					    	Mat ma = buildMat(bytes,frame.rows(),frame.cols(),frame.type());
+//
+//					    	System.out.println("Is equal? "+equalMats(frame, ma));
 					    }
 
 //					    System.out.println("Captured Frame Width " + frame.width());

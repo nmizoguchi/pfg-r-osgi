@@ -3,6 +3,8 @@ package ch.ethz.iks.r_osgi.sample.service;
 import java.io.IOException;
 import java.util.Dictionary;
 import java.util.Hashtable;
+
+import org.opencv.core.Core;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
@@ -20,6 +22,8 @@ public class Activator implements BundleActivator, SurrogateRegistration {
 	private ServiceRegistration registration;
 
 	public void start(BundleContext context) throws Exception {
+		
+		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
 		// register the sample service and enable R-OSGi remote access by
 		// building a proxy on the client side

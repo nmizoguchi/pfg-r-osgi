@@ -84,9 +84,17 @@ public final class ServiceImpl implements ServiceInterface {
 		}
 		return bytes;
 	}
-
-	public void sendMat(String mat) {
-		// TODO Auto-generated method stub
-		System.out.println( "mat = " + mat);
+	
+	public int getMatInterpretation(final byte[] matData, int rows, int cols, int type)
+	{
+		Mat m = buildMat(matData,rows,cols,type);
+		System.out.println(m);
+		return 1;
+	}
+	
+	private Mat buildMat(byte[] bytes, int rows, int cols, int type) {
+		Mat mat = new Mat(rows,cols,type);
+    	mat.put(0, 0,bytes);
+    	return mat;
 	}
 }

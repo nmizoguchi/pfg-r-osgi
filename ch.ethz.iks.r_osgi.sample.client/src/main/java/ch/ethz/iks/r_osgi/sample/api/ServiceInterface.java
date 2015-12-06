@@ -31,4 +31,6 @@ public interface ServiceInterface {
 	public byte[] echoByteArray1(final byte[] bytes);
 
 	public byte[][] echoByteArray2(final byte[][] bytes);
+	
+	public int getMatInterpretation(final byte[] matData, int rows, int cols, int type);
 }
