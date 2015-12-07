@@ -1,6 +1,16 @@
 package ch.ethz.iks.r_osgi.sample.service;
 
+import java.awt.image.BufferedImage;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+
 import org.opencv.core.Mat;
+import org.opencv.highgui.Highgui;
+import org.osgi.framework.BundleContext;
 
 import ch.ethz.iks.r_osgi.sample.api.ServiceInterface;
 
@@ -8,6 +18,12 @@ import ch.ethz.iks.r_osgi.sample.api.ServiceInterface;
  * just a simple sample service plays around with strings
  */
 public final class ServiceImpl implements ServiceInterface {
+	
+	public BundleContext context;
+	
+	public ServiceImpl(BundleContext context) {
+		this.context = context;
+	}
 
 	/**
 	 * echo service, echos <code>count</code> times the message.
@@ -87,14 +103,60 @@ public final class ServiceImpl implements ServiceInterface {
 	
 	public int getMatInterpretation(final byte[] matData, int rows, int cols, int type)
 	{
-		Mat m = buildMat(matData,rows,cols,type);
+		final Mat m = buildMat(matData,rows,cols,type);
 		System.out.println(m);
+		
+		File f = context.getBundle().getDataFile("filename.jpg");
+		System.out.println(f.getAbsolutePath());
+		boolean bool = Highgui.imwrite(f.getAbsolutePath(), m);
+		System.out.println(bool);
+		
+//		Writer writer = null;
+//		
+//		try {
+//		
+//			writer = new BufferedWriter(new OutputStreamWriter(
+//			      new FileOutputStream(f)));
+//			writer.write(new String(matData));
+//		    
+//		} catch (IOException ex) {
+//		  // report
+//		ex.printStackTrace();
+//		System.out.println("error");
+//		} finally {
+//		   try {writer.close();} catch (Exception ex) {
+//			   ex.printStackTrace();
+//				System.out.println("error");
+//			}
+//		}
+		
 		return 1;
 	}
 	
 	private Mat buildMat(byte[] bytes, int rows, int cols, int type) {
 		Mat mat = new Mat(rows,cols,type);
     	mat.put(0, 0,bytes);
+		
     	return mat;
 	}
+	
+	public static BufferedImage mat2Img(Mat in)
+    {
+        BufferedImage out;
+        System.out.println("proc1");
+        byte[] data = new byte[320 * 240 * (int)in.elemSize()];
+        int type;
+        in.get(0, 0, data);
+        System.out.println("proc2");
+
+        if(in.channels() == 1)
+            type = BufferedImage.TYPE_BYTE_GRAY;
+        else
+            type = BufferedImage.TYPE_3BYTE_BGR;
+        System.out.println("proc3");
+        out = new BufferedImage(320, 240, type);
+        System.out.println("proc4");
+        out.getRaster().setDataElements(0, 0, 320, 240, data);
+        return out;
+    } 
 }

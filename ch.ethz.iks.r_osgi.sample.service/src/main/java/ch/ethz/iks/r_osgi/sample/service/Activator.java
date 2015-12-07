@@ -36,7 +36,7 @@ public class Activator implements BundleActivator, SurrogateRegistration {
 		// RemoteOSGiService.TRANSFER_BUNDLE_POLICY);
 
 		final ServiceRegistration reg = context.registerService(
-				ServiceInterface.class.getName(), new ServiceImpl(), null);
+				ServiceInterface.class.getName(), new ServiceImpl(context), null);
 
 		properties.put(SurrogateRegistration.SERVICE_REFERENCE,
 				reg.getReference());
