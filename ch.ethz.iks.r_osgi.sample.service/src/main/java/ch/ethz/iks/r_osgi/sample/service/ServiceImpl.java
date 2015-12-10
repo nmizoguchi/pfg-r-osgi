@@ -1,12 +1,10 @@
 package ch.ethz.iks.r_osgi.sample.service;
 
-import java.awt.image.BufferedImage;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.Socket;
+import java.util.UUID;
 
 import org.opencv.core.Mat;
 import org.opencv.highgui.Highgui;
@@ -20,9 +18,11 @@ import ch.ethz.iks.r_osgi.sample.api.ServiceInterface;
 public final class ServiceImpl implements ServiceInterface {
 	
 	public BundleContext context;
+	public Socket client;
 	
-	public ServiceImpl(BundleContext context) {
+	public ServiceImpl(BundleContext context, Socket client) {
 		this.context = context;
+		this.client = client;
 	}
 
 	/**
@@ -101,36 +101,37 @@ public final class ServiceImpl implements ServiceInterface {
 		return bytes;
 	}
 	
-	public int getMatInterpretation(final byte[] matData, int rows, int cols, int type)
+	public String getMatInterpretation(final byte[] matData, int rows, int cols, int type)
 	{
 		final Mat m = buildMat(matData,rows,cols,type);
 		System.out.println(m);
+		String response = "Error";
 		
-		File f = context.getBundle().getDataFile("filename.jpg");
-		System.out.println(f.getAbsolutePath());
-		boolean bool = Highgui.imwrite(f.getAbsolutePath(), m);
-		System.out.println(bool);
+		UUID i = UUID.randomUUID();
+		String filePath = executeCommand("pwd").trim()+"/image_"+i.toString()+".jpg";
 		
-//		Writer writer = null;
-//		
-//		try {
-//		
-//			writer = new BufferedWriter(new OutputStreamWriter(
-//			      new FileOutputStream(f)));
-//			writer.write(new String(matData));
-//		    
-//		} catch (IOException ex) {
-//		  // report
-//		ex.printStackTrace();
-//		System.out.println("error");
-//		} finally {
-//		   try {writer.close();} catch (Exception ex) {
-//			   ex.printStackTrace();
-//				System.out.println("error");
-//			}
-//		}
+		if(Highgui.imwrite(filePath, m)) {
+			try {
+				BufferedOutputStream output = new BufferedOutputStream(client.getOutputStream());
+				output.write(filePath.getBytes());
+				output.flush();
+				
+				InputStreamReader reader = new InputStreamReader(client.getInputStream());
+				int data = reader.read();
+				StringBuilder b = new StringBuilder();
+				while(data != -1){
+				    char theChar = (char) data;
+				    if(theChar == ';') break;
+				    b.append(theChar);
+				    data = reader.read();
+				}
+				response = b.toString();
+			
+			} catch(Exception e) { System.out.println("Erro: " + e.getMessage()); }
+		}
 		
-		return 1;
+		System.out.println(response);
+		return new String(response);
 	}
 	
 	private Mat buildMat(byte[] bytes, int rows, int cols, int type) {
@@ -140,23 +141,28 @@ public final class ServiceImpl implements ServiceInterface {
     	return mat;
 	}
 	
-	public static BufferedImage mat2Img(Mat in)
-    {
-        BufferedImage out;
-        System.out.println("proc1");
-        byte[] data = new byte[320 * 240 * (int)in.elemSize()];
-        int type;
-        in.get(0, 0, data);
-        System.out.println("proc2");
+	private String executeCommand(String command) {
 
-        if(in.channels() == 1)
-            type = BufferedImage.TYPE_BYTE_GRAY;
-        else
-            type = BufferedImage.TYPE_3BYTE_BGR;
-        System.out.println("proc3");
-        out = new BufferedImage(320, 240, type);
-        System.out.println("proc4");
-        out.getRaster().setDataElements(0, 0, 320, 240, data);
-        return out;
-    } 
+		StringBuffer output = new StringBuffer();
+
+		Process p;
+		try {
+			p = Runtime.getRuntime().exec(command);
+			p.waitFor();
+			BufferedReader reader = 
+                            new BufferedReader(new InputStreamReader(p.getInputStream()));
+
+                        String line = "";
+			while ((line = reader.readLine())!= null) {
+				output.append(line + "\n");
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return e.getMessage();
+		}
+
+		return output.toString();
+
+	}
 }

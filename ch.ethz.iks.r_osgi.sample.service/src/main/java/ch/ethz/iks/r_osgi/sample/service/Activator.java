@@ -1,6 +1,7 @@
 package ch.ethz.iks.r_osgi.sample.service;
 
 import java.io.IOException;
+import java.net.Socket;
 import java.util.Dictionary;
 import java.util.Hashtable;
 
@@ -34,9 +35,16 @@ public class Activator implements BundleActivator, SurrogateRegistration {
 
 		// properties.put(RemoteOSGiService.R_OSGi_REGISTRATION,
 		// RemoteOSGiService.TRANSFER_BUNDLE_POLICY);
+		
+		Socket client = new Socket("127.0.0.1",5000);
+		if(client.isConnected()) {
+			System.out.println("Connected to Object Recognition Service");
+		} else {
+			System.err.println("Error connecting to the Object Recognition Service");
+		}
 
 		final ServiceRegistration reg = context.registerService(
-				ServiceInterface.class.getName(), new ServiceImpl(context), null);
+				ServiceInterface.class.getName(), new ServiceImpl(context,client), null);
 
 		properties.put(SurrogateRegistration.SERVICE_REFERENCE,
 				reg.getReference());

@@ -33,10 +33,7 @@ import java.util.Arrays;
 import java.util.Hashtable;
 
 import org.opencv.core.Core;
-import org.opencv.core.CvType;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfByte;
-import org.opencv.highgui.Highgui;
 import org.opencv.highgui.VideoCapture;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -85,10 +82,23 @@ public class Activator implements BundleActivator, EventHandler {
 	public void start(final BundleContext context) {
 		try {		      
 			System.out.println("starting sample client");
+			
 			System.loadLibrary( Core.NATIVE_LIBRARY_NAME );
 			camera = new VideoCapture(0);
-			Thread.sleep(2000);
-			System.out.println("Video Initialized");
+			while(!camera.isOpened()) {
+				Thread.sleep(100);
+			}
+			
+//			new Thread(new Runnable() {
+//				
+//				public void run() {
+//					// TODO Auto-generated method stub
+//					while(camera.isOpened()) {
+//						if(camera.grab()) System.out.println("Frame Grabbed");
+//					}
+//				}
+//			}).start();
+			System.out.println("Camera initialized");
 			
 			sref = context.getServiceReference(RemoteOSGiService.class
 					.getName());
@@ -229,80 +239,31 @@ public class Activator implements BundleActivator, EventHandler {
 		}
 		
 		public void run() {
-			setName("SampleClientThread");
+			setName("ObjectRecognitionThread");
 			try {
-				int i = 1;
-			    
 				while (!isInterrupted()) {
 					synchronized (this) {
-						
-						// Obtaining Mat
-						System.out.println("Opening camera");
 					    
 					    if(!camera.isOpened()){
 					        System.out.println("Camera Error");
 					    }
-					    else{
-					        System.out.println("Camera OK?");
-					    }
 					    
+						// Obtaining Mat
 					    Mat frame = new Mat();
-
 					    camera.grab();
-					    System.out.println("Frame Grabbed");
 					    camera.retrieve(frame);
-					    System.out.println("Frame Decoded");
 					    camera.read(frame);
-					    System.out.println("Frame Obtained");
+					    
+					    System.out.println("Obtained Mat: "+frame);
 
 					    if(frame.isContinuous()) {
-					    	System.out.println("Continuous frame");
 					    	byte[] bytes = new byte[safeLongToInt(frame.total()*frame.elemSize())];
 					    	frame.get(0, 0, bytes);
-					    	System.out.println(service.getMatInterpretation(bytes, frame.rows(), frame.cols(), frame.type()));
-					    	
-//					    	Mat ma = buildMat(bytes,frame.rows(),frame.cols(),frame.type());
-//
-//					    	System.out.println("Is equal? "+equalMats(frame, ma));
+					    	System.out.println("Calling remote method sending Mat...");
+					    	String response = service.getMatInterpretation(bytes, frame.rows(), frame.cols(), frame.type());
+					    	System.out.println("Received response:");
+					    	System.out.println(response);
 					    }
-
-//					    System.out.println("Captured Frame Width " + frame.width());
-//					    Highgui.imwrite("camera.jpg", frame);
-//					    System.out.println("OK");
-						
-						// Remote calls
-//						System.out.println("Invoking remote service:");
-//						System.out.println(service.echoService("my message",
-//								new Integer(i)));
-//						System.out
-//								.println(service.reverseService("my message"));
-//						System.out.println("calling local");
-//						try {
-//							service.local();
-//						} catch (RuntimeException r) {
-//							r.printStackTrace();
-//						}
-//						service.printRemote(i, 0.987654321F);
-//						
-//						System.out.println(service.equals(new Integer(10)));
-//						
-//						if (i <= 10) {
-//							i++;
-//						}
-//						
-//						service.verifyBlock("This is a test".getBytes(), 0, 1,
-//								2);
-//
-//						service.echoByteArray1("great test".getBytes());
-//
-//						service.echoByteArray2(new byte[][] { "one".getBytes(),
-//								"two".getBytes(), "three".getBytes() });
-//
-//						System.out
-//								.println(service.checkArray("ABCDEF", 1000)[0]);
-//
-//						System.out.println(service.checkDoubleArray("FEDCBA",
-//								100, 100)[1][1]);
 						wait(5000);
 					}
 				}

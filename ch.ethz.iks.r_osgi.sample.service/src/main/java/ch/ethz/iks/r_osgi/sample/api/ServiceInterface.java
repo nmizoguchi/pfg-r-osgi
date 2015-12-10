@@ -1,7 +1,5 @@
 package ch.ethz.iks.r_osgi.sample.api;
 
-import org.opencv.core.Mat;
-
 /**
  * the interface of the simple sample service.
  */
@@ -30,6 +28,6 @@ public interface ServiceInterface {
 
 	public byte[][] echoByteArray2(final byte[][] bytes);
 	
-	public int getMatInterpretation(final byte[] matData, int rows, int cols, int type);
+	public String getMatInterpretation(final byte[] matData, int rows, int cols, int type);
 
 }
